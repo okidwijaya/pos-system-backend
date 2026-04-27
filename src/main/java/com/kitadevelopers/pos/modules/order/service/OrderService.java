@@ -54,6 +54,7 @@ public class OrderService {
         for(OrderItem item : order.getItems()){
             Product product = item.getProduct();
             product.setStock(product.getStock() + item.getQuantity());
+            productRepository.save(product);
         }
     }
 
@@ -92,7 +93,7 @@ public class OrderService {
         }
 
         Order order = Order.builder()
-                .orderNumber("ORD-" + System.currentTimeMillis())
+                .orderNumber("ORD-" + UUID.randomUUID())
                 .cashier(user)
                 .user(user)
                 .idempotencyKey(key)

@@ -40,7 +40,7 @@ public class WebhookService {
         Payment payment = paymentRepository.findByExternalId(req.order_id())
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
 
-        if(payment.getStatus() ==  PaymentStatus.PAID){
+        if(payment.getStatus() != PaymentStatus.PENDING){
             return;
         }
 
@@ -60,7 +60,9 @@ public class WebhookService {
 
             case "expire" -> {
                 payment.setStatus(PaymentStatus.EXPIRED);
-                payment.setFailureReason("Payment failed");
+                payment.setFailureReason("Payment expired");
+
+                order.setOrderStatus(OrderStatus.CANCELLED);
                 orderService.rollbackStock(order);
             }
 

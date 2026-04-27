@@ -1,7 +1,6 @@
 package com.kitadevelopers.pos.modules.payment.service;
 
 import com.kitadevelopers.pos.modules.order.entity.Order;
-import com.kitadevelopers.pos.modules.order.entity.OrderItem;
 import com.kitadevelopers.pos.modules.order.enums.OrderStatus;
 import com.kitadevelopers.pos.modules.order.repository.OrderRepository;
 import com.kitadevelopers.pos.modules.order.service.OrderService;
@@ -14,7 +13,6 @@ import com.kitadevelopers.pos.modules.payment.enums.PaymentMethods;
 import com.kitadevelopers.pos.modules.payment.enums.PaymentStatus;
 import com.kitadevelopers.pos.modules.payment.mapper.PaymentMapper;
 import com.kitadevelopers.pos.modules.payment.repository.PaymentRepository;
-import com.kitadevelopers.pos.modules.product.entity.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,22 +58,25 @@ public class PaymentService {
     @Transactional
     public PaymentResponse manualPayment(ManualPaymentRequest request){
         Order order = orderRepository.findById(request.orderId())
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException("Order Not Found"));
 
         if(order.getOrderStatus() !=  OrderStatus.PENDING){
             throw new RuntimeException("Order Already processed");
         }
+
+        if(paymentRepository.findByOrderId(order.getId()).isPresent()){
+            throw new RuntimeException("Payment already exist");
+        }
+
         Payment payment = Payment.builder()
                 .order(order)
                 .externalId("PAY-MAN-" + UUID.randomUUID())
                 .method(request.method())
-                .status(request.method() == PaymentMethods.CASH ?
-                        PaymentStatus.PAID : PaymentStatus.PENDING)
+                .status(PaymentStatus.PENDING)
                 .amount(order.getTotalAmount())
                 .proofImage(request.proofImage())
                 .notes(request.notes())
-                .paidAt(request.method() == PaymentMethods.CASH
-                ? LocalDateTime.now() : null)
+                .expiredAt(LocalDateTime.now().plusMinutes(30))
                 .build();
 
         paymentRepository.save(payment);
@@ -91,10 +92,10 @@ public class PaymentService {
     public void verifyManualPayment(UUID id, VerifyPaymentRequest request){
 
         Payment payment = paymentRepository.findById(id)
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException("Payment not found"));
 
         if(payment.getStatus() != PaymentStatus.PENDING){
-            throw new RuntimeException("Invalid status");
+            throw new RuntimeException("Payment slready processed");
         }
 
         payment.setStatus(PaymentStatus.PAID);
@@ -112,10 +113,10 @@ public class PaymentService {
     public void rejectManualPayment(UUID id, RejectPaymentRequest request){
 
         Payment payment = paymentRepository.findById(id)
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException("Payment not found"));
 
         if(payment.getStatus() != PaymentStatus.PENDING){
-            throw new RuntimeException("Invalid status");
+            throw new RuntimeException("Payment already processed");
         }
 
         payment.setStatus(PaymentStatus.FAILED);

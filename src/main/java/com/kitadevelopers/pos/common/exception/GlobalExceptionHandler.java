@@ -14,18 +14,10 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ApiResponse<Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex){
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse<Object>> handleRuntime(RuntimeException ex){
         return ResponseEntity.badRequest()
-                .body(ApiResponse.error(
-                        ex.getValue() + "Isn't a valid UUID"
-                ));
-    }
-
-    @ExceptionHandler(ProductNotFoundException.class)
-    public ResponseEntity<ApiResponse<Object>> handleProductNotFound(ProductNotFoundException ex){
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body((ApiResponse.error(ex.getMessage())));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -36,14 +28,46 @@ public class GlobalExceptionHandler {
                 .forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
 
         return ResponseEntity.badRequest()
-                .body(ApiResponse.error(errors.toString()));
+                .body(ApiResponse.error(errors));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Object>> handleAll(Exception ex){
+    public ResponseEntity<ApiResponse<Object>> handle(Exception ex){
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponse.error("Internal server error"));
     }
+
+//    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+//    public ResponseEntity<ApiResponse<Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex){
+//        return ResponseEntity.badRequest()
+//                .body(ApiResponse.error(
+//                        ex.getValue() + "Isn't a valid UUID"
+//                ));
+//    }
+//
+//    @ExceptionHandler(ProductNotFoundException.class)
+//    public ResponseEntity<ApiResponse<Object>> handleProductNotFound(ProductNotFoundException ex){
+//        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                .body(ApiResponse.error(ex.getMessage()));
+//    }
+//
+//    @ExceptionHandler(MethodArgumentNotValidException.class)
+//    public ResponseEntity<ApiResponse<Object>> handleValidation(MethodArgumentNotValidException ex){
+//        Map<String, String> errors = new HashMap<>();
+//
+//        ex.getBindingResult().getFieldErrors()
+//                .forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
+//
+//        return ResponseEntity.badRequest()
+//                .body(ApiResponse.error(errors.toString()));
+//    }
+//
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ApiResponse<Object>> handleAll(Exception ex){
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body(ApiResponse.error(ex.getMessage()));
+//    }
+}
 //    //validation err
 //    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
 //    public ResponseEntity<?> handleTypeMismatch(MethodArgumentTypeMismatchException ex){
@@ -70,4 +94,4 @@ public class GlobalExceptionHandler {
     //
     //        return ResponseEntity.badRequest().body(errors);
     //    }
-}
+

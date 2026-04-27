@@ -1,13 +1,17 @@
 package com.kitadevelopers.pos.modules.auth.controller;
 
+import com.kitadevelopers.pos.common.config.RateLimitConfig;
 import com.kitadevelopers.pos.common.response.ApiResponse;
 import com.kitadevelopers.pos.modules.auth.dto.*;
 import com.kitadevelopers.pos.modules.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.security.PrivateKey;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -20,6 +24,9 @@ public class AuthController {
     public ApiResponse<AuthResponse> register(@RequestBody RegisterRequest request){
         return ApiResponse.success(service.register(request));
     }
+
+    @Autowired
+    private RateLimitConfig rateLimit;
 
     @PostMapping("/login")
     public ApiResponse<AuthResponse> login(@RequestBody LoginRequest request){
