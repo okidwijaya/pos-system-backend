@@ -60,6 +60,8 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
+        saveRefreshToken(user, refreshToken);
+
         return new AuthResponse(accessToken, refreshToken);
     }
 

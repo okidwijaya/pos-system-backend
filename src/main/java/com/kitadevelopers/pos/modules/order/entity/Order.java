@@ -76,6 +76,13 @@ public class Order {
     @PreUpdate
     public void onUpdate(){ this.updatedAt = LocalDateTime.now(); }
 
+    @Column(name = "total_before_tax", precision = 15, scale = 2)
+    private BigDecimal totalBeforeTax;
+
+    @Column(name = "total_tax", precision = 15, scale = 2)
+    @Builder.Default
+    private BigDecimal totalTax = BigDecimal.ZERO;
+
     @Column
     private Long version;
 }

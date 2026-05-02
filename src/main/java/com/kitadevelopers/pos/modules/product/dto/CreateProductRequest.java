@@ -3,6 +3,7 @@ package com.kitadevelopers.pos.modules.product.dto;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public record  CreateProductRequest (
         @NotBlank(message = "Name is Required")
@@ -18,5 +19,12 @@ public record  CreateProductRequest (
         @Min(value = 0, message = "Stock cannot be positive")
         Integer stock,
 
-        BigDecimal costPrice
+        BigDecimal costPrice,
+
+        UUID categoryId,
+        String sku,
+        String barcode,
+
+        @DecimalMin("0.00") @DecimalMax("1.00")
+        BigDecimal taxRate
 ){}

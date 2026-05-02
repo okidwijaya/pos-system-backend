@@ -23,8 +23,8 @@ public class ProductController {
     private final ProductService service;
 
     @PostMapping
-    public ProductResponse create(@Valid @RequestBody CreateProductRequest request){
-        return service.create(request);
+    public ApiResponse<ProductResponse> create(@Valid @RequestBody CreateProductRequest request){
+        return ApiResponse.success(service.create(request));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'CASHIER')")

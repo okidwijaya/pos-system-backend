@@ -1,6 +1,8 @@
 package com.kitadevelopers.pos.modules.product.service;
 
 import com.kitadevelopers.pos.common.exception.ProductNotFoundException;
+import com.kitadevelopers.pos.modules.category.entity.Category;
+import com.kitadevelopers.pos.modules.category.repository.CategoryRepository;
 import com.kitadevelopers.pos.modules.product.dto.CreateProductRequest;
 import com.kitadevelopers.pos.modules.product.dto.ProductResponse;
 import com.kitadevelopers.pos.modules.product.dto.UpdateProductRequest;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 //import java.util.List;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static com.kitadevelopers.pos.modules.product.spec.ProductSpecification.*;
@@ -22,12 +25,22 @@ import static com.kitadevelopers.pos.modules.product.spec.ProductSpecification.*
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository repository;
+    private final CategoryRepository categoryRepository;
 
     public ProductResponse create(CreateProductRequest request){
         Product product = ProductMapper.toEntity(request);
+
+        if(request.categoryId() != null){
+            Category category = categoryRepository.findById(request.categoryId())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+
+            product.setCategory(category);
+        }
+
         repository.save(product);
         return ProductMapper.toResponse(product);
     }
+
     public Page<ProductResponse> getAll(
             String search,
             BigDecimal minPrice,
@@ -45,7 +58,8 @@ public class ProductService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
         Specification<Product> spec = Specification
-                .where(hasName(search))
+                .where(notDeleted())
+                .and(hasName(search))
                 .and(hasMinPrice(minPrice))
                 .and(hasMaxPrice(maxPrice))
                 .and(hasMinStock(minStock))
@@ -56,15 +70,22 @@ public class ProductService {
     }
 
     public ProductResponse getById(UUID id){
-        Product product = repository.findById(id)
+        Product product = repository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
-
+//        Product product = repository.findById(id)
         return ProductMapper.toResponse(product);
     }
 
     public ProductResponse update(UUID id, UpdateProductRequest request){
         Product product = repository.findById(id)
                 .orElseThrow(()-> new ProductNotFoundException(id));
+
+        if(request.categoryId() != null){
+            Category category = categoryRepository.findById(request.categoryId())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+
+            product.setCategory(category);
+        }
 
         ProductMapper.updateEntity(product, request);
         repository.save(product);
@@ -73,10 +94,19 @@ public class ProductService {
     }
 
     public void delete(UUID id){
-        if(!repository.existsById(id)){
-            throw new ProductNotFoundException(id);
-        }
-        repository.deleteById(id);
+        Product product = repository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
+
+        product.setIsDeleted(true);
+        product.setDeletedAt(LocalDateTime.now());
+
+        repository.save(product);
     }
+//    public void delete(UUID id){
+//        if(!repository.existsById(id)){
+//            throw new ProductNotFoundException(id);
+//        }
+//        repository.deleteById(id);
+//    }
 
 }

@@ -3,10 +3,11 @@ package com.kitadevelopers.pos.common.exception;
 import com.kitadevelopers.pos.common.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,29 +15,76 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<Object>> handleRuntime(RuntimeException ex){
-        return ResponseEntity.badRequest()
-                .body((ApiResponse.error(ex.getMessage())));
-    }
-
+//    @valid validatoin failures 400
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleValidation(MethodArgumentNotValidException ex){
         Map<String, String> errors = new HashMap<>();
-
-        ex.getBindingResult().getFieldErrors()
-                .forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
-
-        return ResponseEntity.badRequest()
+        for(FieldError fieldError : ex.getBindingResult().getFieldErrors()){
+            errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+        }
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(errors));
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Object>> handle(Exception ex){
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Internal server error"));
+    //business logic expectation (runtimexception) 400
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse<Object>> handleRuntime(RuntimeException ex){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
     }
 
+    // 401 Bad credentials
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiResponse<Object>> handleBadCredentials(BadCredentialsException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("Invalid email or password"));
+    }
+
+    // Resource not found → 404
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    // Catch-all → 500
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Something went wrong. Please try again."));
+    }
+}
+
+//@ExceptionHandler(RuntimeException.class)
+//public ResponseEntity<ApiResponse<Object>> handleRuntime(RuntimeException ex){
+//    return ResponseEntity.badRequest()
+//            .body((ApiResponse.error(ex.getMessage())));
+//}
+//
+//// @valid validatoin failerus 400
+//@ExceptionHandler(MethodArgumentNotValidException.class)
+//public ResponseEntity<ApiResponse<Object>> handleValidation(MethodArgumentNotValidException ex){
+//    Map<String, String> errors = new HashMap<>();
+//
+//    ex.getBindingResult().getFieldErrors()
+//            .forEach(err -> errors.put(err.getField(), err.getDefaultMessage()));
+//
+//    return ResponseEntity.badRequest()
+//            .body(ApiResponse.error(errors));
+//}
+//
+//@ExceptionHandler(Exception.class)
+//public ResponseEntity<ApiResponse<Object>> handle(Exception ex){
+//    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//            .body(ApiResponse.error("Internal server error"));
+//}
+
+    //===========================
 //    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
 //    public ResponseEntity<ApiResponse<Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex){
 //        return ResponseEntity.badRequest()
@@ -67,7 +115,8 @@ public class GlobalExceptionHandler {
 //        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 //                .body(ApiResponse.error(ex.getMessage()));
 //    }
-}
+
+//===========================
 //    //validation err
 //    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
 //    public ResponseEntity<?> handleTypeMismatch(MethodArgumentTypeMismatchException ex){

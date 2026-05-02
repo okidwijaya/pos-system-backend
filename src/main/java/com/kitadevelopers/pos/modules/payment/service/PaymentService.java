@@ -1,6 +1,7 @@
 package com.kitadevelopers.pos.modules.payment.service;
 
 import com.kitadevelopers.pos.modules.order.entity.Order;
+import com.kitadevelopers.pos.common.exception.ResourceNotFoundException;
 import com.kitadevelopers.pos.modules.order.enums.OrderStatus;
 import com.kitadevelopers.pos.modules.order.repository.OrderRepository;
 import com.kitadevelopers.pos.modules.order.service.OrderService;
@@ -9,7 +10,7 @@ import com.kitadevelopers.pos.modules.payment.dto.PaymentResponse;
 import com.kitadevelopers.pos.modules.payment.dto.RejectPaymentRequest;
 import com.kitadevelopers.pos.modules.payment.dto.VerifyPaymentRequest;
 import com.kitadevelopers.pos.modules.payment.entity.Payment;
-import com.kitadevelopers.pos.modules.payment.enums.PaymentMethods;
+//import com.kitadevelopers.pos.modules.payment.enums.PaymentMethods;
 import com.kitadevelopers.pos.modules.payment.enums.PaymentStatus;
 import com.kitadevelopers.pos.modules.payment.mapper.PaymentMapper;
 import com.kitadevelopers.pos.modules.payment.repository.PaymentRepository;
@@ -30,7 +31,7 @@ public class PaymentService {
     @Transactional
     public PaymentResponse createPayment(UUID orderId){
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order Not Found"));
+                .orElseThrow(() -> ResourceNotFoundException.of("Order Not Found", orderId));
 
         paymentRepository.findByOrderId(orderId)
                 .ifPresent(p ->{

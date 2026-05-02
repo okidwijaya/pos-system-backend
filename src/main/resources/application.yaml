@@ -4,15 +4,23 @@ server:
 spring:
   application:
     name: pos
-
   profiles:
-    active: dev  # default
+    active: dev
+
+pos:
+  store:
+    name: "Toko Saya"
+    address: "Jl. Merdeka No. 10, Jakarta"
+    phone: "021-12345678"
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics
-  endpoint:
-    health:
-      show-details: always
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: WARN
+    com.kitadevelopers.pos: DEBUG

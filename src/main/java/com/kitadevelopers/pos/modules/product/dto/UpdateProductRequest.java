@@ -3,6 +3,7 @@ package com.kitadevelopers.pos.modules.product.dto;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public record UpdateProductRequest(
         @NotBlank
@@ -16,6 +17,11 @@ public record UpdateProductRequest(
 
         @NotNull
         @Min(0)
-        Integer stock
+        Integer stock,
+
+        UUID categoryId,
+
+        @DecimalMin("0.00") @DecimalMax("1.00")
+        BigDecimal taxRate
 ){
 }

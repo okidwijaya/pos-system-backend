@@ -1,5 +1,6 @@
 package com.kitadevelopers.pos.modules.order.service;
 
+import com.kitadevelopers.pos.common.util.TaxCalculator;
 import com.kitadevelopers.pos.modules.cart.entity.Cart;
 import com.kitadevelopers.pos.modules.cart.entity.CartItem;
 import com.kitadevelopers.pos.modules.cart.enums.CartStatus;
@@ -105,34 +106,73 @@ public class OrderService {
 //        order = orderRepository.save(order);
 
         BigDecimal total = BigDecimal.ZERO;
+        BigDecimal totalTax = BigDecimal.ZERO;
 
         for(CartItem cartItem : cartItems){
-
             Product product = productRepository.findByIdForUpdate(
                     cartItem.getProduct().getId()
             ).orElseThrow();
 
             if(product.getStock() < cartItem.getQuantity()){
-                throw new RuntimeException("Stock not enough. for " + product.getName());
+                throw new RuntimeException("Stock not enough for: " + product.getName());
             }
 
             product.setStock(product.getStock() - cartItem.getQuantity());
 
-            BigDecimal subtotal = product.getPrice()
+            BigDecimal subTotalBeforeTax = product.getPrice()
                     .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+
+            BigDecimal taxAmount = TaxCalculator.Calculatetax(
+                    product.getPrice(), cartItem.getQuantity(), product.getTaxRate()
+            );
+
+            BigDecimal subTotal = subTotalBeforeTax.add(taxAmount);
 
             OrderItem item = OrderItem.builder()
                     .product(product)
                     .productName(product.getName())
                     .price(product.getPrice())
                     .quantity(cartItem.getQuantity())
-                    .subtotal(subtotal)
+                    .taxRate(product.getTaxRate())
+                    .taxAmount(taxAmount)
+                    .subtotalBeforeTax(subTotalBeforeTax)
+                    .subtotal(subTotal)
                     .build();
+
             order.addItem(item);
-            total = total.add(subtotal);
+            total = total.add(subTotal);
+            totalTax = totalTax.add(taxAmount);
         }
 
+//        for(CartItem cartItem : cartItems){
+//
+//            Product product = productRepository.findByIdForUpdate(
+//                    cartItem.getProduct().getId()
+//            ).orElseThrow();
+//
+//            if(product.getStock() < cartItem.getQuantity()){
+//                throw new RuntimeException("Stock not enough. for " + product.getName());
+//            }
+//
+//            product.setStock(product.getStock() - cartItem.getQuantity());
+//
+//            BigDecimal subtotal = product.getPrice()
+//                    .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+//
+//            OrderItem item = OrderItem.builder()
+//                    .product(product)
+//                    .productName(product.getName())
+//                    .price(product.getPrice())
+//                    .quantity(cartItem.getQuantity())
+//                    .subtotal(subtotal)
+//                    .build();
+//            order.addItem(item);
+//            total = total.add(subtotal);
+//        }
+
         order.setTotalAmount(total);
+        order.setTotalTax(totalTax);
+        order.setTotalBeforeTax(total.subtract(totalTax));
 
         try{
             order = orderRepository.save(order);

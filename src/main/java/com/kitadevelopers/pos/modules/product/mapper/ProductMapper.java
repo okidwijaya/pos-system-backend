@@ -11,6 +11,9 @@ public class ProductMapper {
                 .description(request.description())
                 .price(request.price())
                 .stock(request.stock())
+                .costPrice(request.costPrice())
+                .sku(request.sku())
+                .barcode(request.barcode())
                 .build();
     }
 

@@ -10,7 +10,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "products")
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -49,15 +50,27 @@ public class Product {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private Boolean isDeleted = false;
+
+    private LocalDateTime deletedAt;
+
     @PrePersist
-    public void onCrate(){
+    public void onCrate() {
         this.createdAt = LocalDateTime.now();
     }
 
     @PreUpdate
-    public void onUpdate() { this.updatedAt = LocalDateTime.now(); }
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @Column(name = "tax_rate", precision = 5, scale = 2, columnDefinition = "numeric(5,2) default 0.00")
+    @Builder.Default
+    private BigDecimal taxRate = BigDecimal.ZERO;
 }

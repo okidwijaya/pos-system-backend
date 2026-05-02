@@ -21,10 +21,24 @@ public class Category {
     @Column(unique = true, nullable = false)
     private String name;
 
-    private LocalDateTime createdAt;
-
     private String description;
 
+    private LocalDateTime createdAt;
+
+    private LocalDateTime deletedAt;
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private Boolean isDeleted = false;
+
     @PrePersist
-    public void onCrate() { this.createdAt = LocalDateTime.now(); }
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        if (isDeleted == null) isDeleted = false;
+    }
+
+    public void softDelete() {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
 }

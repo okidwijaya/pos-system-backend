@@ -44,6 +44,11 @@ public class WebhookService {
             return;
         }
 
+        if(payment.getStatus() == PaymentStatus.EXPIRED
+                || payment.getStatus() == PaymentStatus.FAILED){
+            return; // ❌ ignore late webhook
+        }
+
         Order order = payment.getOrder();
 
         switch (req.transaction_status()){

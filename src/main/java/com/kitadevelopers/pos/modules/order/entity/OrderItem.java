@@ -39,6 +39,17 @@ public class OrderItem {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal subtotal;
 
+    @Column(name = "tax_rate", precision = 5, scale = 2)
+    @Builder.Default
+    private BigDecimal taxRate = BigDecimal.ZERO;
+
+    @Column(name = "tax_amount", precision = 15, scale = 2)
+    @Builder.Default
+    private BigDecimal taxAmount = BigDecimal.ZERO;
+
+    @Column(name = "subtotal_before_tax", precision = 15, scale = 2)
+    private BigDecimal subtotalBeforeTax;
+
 //    @PrePersist
 //    @PreUpdate
 //    public void calculateSubTotal() { this.subtotal = this.price.multiply(BigDecimal.valueOf(this.quantity)); }

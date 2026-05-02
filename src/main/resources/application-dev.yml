@@ -5,22 +5,28 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 3
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      connection-timeout: 30000
+
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
 
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+      timeout: 60000
 
-jwt:
-  secret: ${JWT_SECRET}
-  expiration: 3600000
+management:
+  endpoint:
+    health:
+      show-details: always
 
 midtrans:
-  server-key: ${MIDTRANS_SERVER_KEY}
+  server-key: dummy-key

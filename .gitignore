@@ -32,6 +32,10 @@ build/
 ### VS Code ###
 .vscode/
 
-bak-yaml.txt
+### env
 env.txt
 .env
+
+### bak
+bak-yaml.txt
+jwtfilter-bak.txt

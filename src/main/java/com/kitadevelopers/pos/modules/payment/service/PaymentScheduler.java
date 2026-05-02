@@ -31,6 +31,8 @@ public class PaymentScheduler {
 
         for(Payment p : payments){
                 p.setStatus(PaymentStatus.EXPIRED);
+                paymentRepository.save(p);
+
                 orderService.rollbackStock(p.getOrder());
 //                Order order = p.getOrder();
 //                order.setOrderStatus(OrderStatus.CANCELLED);

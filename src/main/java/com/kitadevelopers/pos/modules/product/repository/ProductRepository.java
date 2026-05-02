@@ -3,6 +3,8 @@ package com.kitadevelopers.pos.modules.product.repository;
 import com.kitadevelopers.pos.modules.product.entity.Product;
 //import org.springframework.data.domain.*;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -17,6 +19,10 @@ public interface ProductRepository extends JpaRepository<Product, UUID>,  JpaSpe
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Product p WHERE p.id = :id")
     Optional<Product> findByIdForUpdate(@Param("id") UUID id);
+
+    Page<Product> findByIsDeletedFalse(Pageable pageable);
+
+    Optional<Product> findByIdAndIsDeletedFalse(UUID id);
 }
 //    Page<Product> findByNameContainingIgnoreCase(
 //            String name,
