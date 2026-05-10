@@ -35,6 +35,9 @@ build/
 ### env
 env.txt
 .env
+.env.*
+!.env.example
+!.env.prod.example
 
 ### bak
 bak-yaml.txt

@@ -19,6 +19,8 @@ public record  CreateProductRequest (
         @Min(value = 0, message = "Stock cannot be positive")
         Integer stock,
 
+        @NotNull
+        @PositiveOrZero
         BigDecimal costPrice,
 
         UUID categoryId,

@@ -7,6 +7,9 @@ public class SecurityUtil {
 
     public static String getCurrentUserEmail(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth == null){
+            return "system";
+        }
         return auth.getName();
     }
 }

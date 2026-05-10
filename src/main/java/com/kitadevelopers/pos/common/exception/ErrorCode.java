@@ -1,0 +1,15 @@
+package com.kitadevelopers.pos.common.exception;
+
+public enum ErrorCode {
+    VALIDATION_ERROR,
+    RESOURCE_NOT_FOUND,
+    INVALID_CREDENTIALS,
+    INVALID_TOKEN,
+    TOKEN_EXPIRED,
+    DUPLICATE_RESOURCE,
+    INVALID_STATE,
+    INSUFFICIENT_STOCK,
+    RATE_LIMITED,
+    UNAUTHORIZED,
+    INTERNAL_ERROR
+}

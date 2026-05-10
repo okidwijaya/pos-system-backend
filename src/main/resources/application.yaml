@@ -4,6 +4,14 @@ server:
 spring:
   application:
     name: pos
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  data:
+    redis:
+      repositories:
+        enabled: false
   profiles:
     active: dev
 
@@ -20,7 +28,22 @@ management:
         include: health,info,metrics
 
 logging:
+  pattern:
+    level: "%5p [requestId:%X{requestId:-}]"
   level:
     root: INFO
     org.springframework.security: WARN
     com.kitadevelopers.pos: DEBUG
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  frontend:
+    reset-password-url: ${FRONTEND_RESET_PASSWORD_URL:http://localhost:3000/reset-password}
+
+jwt:
+  secret: ${JWT_SECRET:javaspringboot2026poskitadeveloperscom}
+
+midtrans:
+  snap-url: ${MIDTRANS_SNAP_URL:https://app.sandbox.midtrans.com/snap/v1/transactions}
+  server-key: ${MIDTRANS_SERVER_KEY:}

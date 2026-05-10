@@ -24,15 +24,21 @@ public class GlobalExceptionHandler {
         }
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(errors));
+                .body(ApiResponse.error(Map.of(
+                        "code", ErrorCode.VALIDATION_ERROR.name(),
+                        "message", "Validation failed",
+                        "fields", errors
+                )));
     }
 
-    //business logic expectation (runtimexception) 400
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<Object>> handleRuntime(RuntimeException ex){
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiResponse<Object>> handleBusiness(BusinessException ex){
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(ex.getMessage()));
+                .status(ex.getStatus())
+                .body(ApiResponse.error(Map.of(
+                        "code", ex.getCode().name(),
+                        "message", ex.getMessage()
+                )));
     }
 
     // 401 Bad credentials
@@ -40,7 +46,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleBadCredentials(BadCredentialsException ex) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error("Invalid email or password"));
+                .body(ApiResponse.error(Map.of(
+                        "code", ErrorCode.INVALID_CREDENTIALS.name(),
+                        "message", "Invalid email or password"
+                )));
     }
 
     // Resource not found → 404
@@ -48,7 +57,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleNotFound(ResourceNotFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponse.error(Map.of(
+                        "code", ErrorCode.RESOURCE_NOT_FOUND.name(),
+                        "message", ex.getMessage()
+                )));
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse<Object>> handleRuntime(RuntimeException ex){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(Map.of(
+                        "code", ErrorCode.INVALID_STATE.name(),
+                        "message", ex.getMessage()
+                )));
     }
 
     // Catch-all → 500
@@ -56,7 +78,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Something went wrong. Please try again."));
+                .body(ApiResponse.error(Map.of(
+                        "code", ErrorCode.INTERNAL_ERROR.name(),
+                        "message", "Something went wrong. Please try again."
+                )));
     }
 }
 
@@ -143,4 +168,3 @@ public class GlobalExceptionHandler {
     //
     //        return ResponseEntity.badRequest().body(errors);
     //    }
-

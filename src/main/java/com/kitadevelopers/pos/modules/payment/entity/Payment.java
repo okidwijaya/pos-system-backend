@@ -62,6 +62,7 @@ public class Payment {
     // TIME
     private LocalDateTime expiredAt;
     private LocalDateTime paidAt;
+    private LocalDateTime stockRolledBackAt;
 
     // ERROR HANDLING
     private String failureReason;
@@ -78,4 +79,6 @@ public class Payment {
 
     private String proofImage;
     private String notes;
+    private String verifiedBy;
+    private String rejectedBy;
 }

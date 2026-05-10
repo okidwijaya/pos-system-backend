@@ -58,10 +58,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException( "User not found"));
 
+            if(Boolean.FALSE.equals(user.getIsActive()) || Boolean.TRUE.equals(user.getIsDeleted())){
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(
-
-                            user,
+                            user.getEmail(),
                             null,
                             List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
                     );

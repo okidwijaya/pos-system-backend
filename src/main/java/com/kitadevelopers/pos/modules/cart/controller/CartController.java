@@ -5,6 +5,7 @@ import com.kitadevelopers.pos.modules.cart.dto.AddToCartRequest;
 import com.kitadevelopers.pos.modules.cart.dto.CartResponse;
 import com.kitadevelopers.pos.modules.cart.dto.UpdateCartItemRequest;
 import com.kitadevelopers.pos.modules.cart.service.CartService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ public class CartController {
 
     @PreAuthorize("hasRole('CASHIER')")
     @PostMapping("/items")
-    public ApiResponse<CartResponse> add(@RequestBody AddToCartRequest request) {
+    public ApiResponse<CartResponse> add(@Valid @RequestBody AddToCartRequest request) {
         return ApiResponse.success(service.addToCart(request));
     }
 
@@ -38,7 +39,7 @@ public class CartController {
 
     @PreAuthorize("hasRole('CASHIER')")
     @PutMapping("/item")
-    public ApiResponse<CartResponse> updateItem(@RequestBody UpdateCartItemRequest request){
+    public ApiResponse<CartResponse> updateItem(@Valid @RequestBody UpdateCartItemRequest request){
         return ApiResponse.success(service.updateItem(request));
     }
 
@@ -66,4 +67,3 @@ public class CartController {
 //    public ApiResponse<Order> checkout(@RequestBody CheckoutRequest request){
 //        return ApiResponse.success(service.checkout(request));
 //    }
-

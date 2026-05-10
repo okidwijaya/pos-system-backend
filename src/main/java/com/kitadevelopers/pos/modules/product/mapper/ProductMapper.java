@@ -3,6 +3,8 @@ package com.kitadevelopers.pos.modules.product.mapper;
 import com.kitadevelopers.pos.modules.product.dto.*;
 import com.kitadevelopers.pos.modules.product.entity.Product;
 
+import java.math.BigDecimal;
+
 public class ProductMapper {
 //    entity
     public static Product toEntity(CreateProductRequest request){
@@ -14,6 +16,7 @@ public class ProductMapper {
                 .costPrice(request.costPrice())
                 .sku(request.sku())
                 .barcode(request.barcode())
+                .taxRate(request.taxRate() != null ? request.taxRate() : BigDecimal.ZERO)
                 .build();
     }
 
@@ -22,6 +25,7 @@ public class ProductMapper {
         product.setDescription(request.description());
         product.setPrice(request.price());
         product.setStock(request.stock());
+        product.setTaxRate(request.taxRate() != null ? request.taxRate() : BigDecimal.ZERO);
     }
 
     public static ProductResponse toResponse(Product product){

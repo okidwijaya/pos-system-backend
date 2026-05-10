@@ -68,12 +68,13 @@ public class WebhookService {
                 payment.setFailureReason("Payment expired");
 
                 order.setOrderStatus(OrderStatus.CANCELLED);
-                orderService.rollbackStock(order);
+                paymentService.rollbackStockOnce(payment);
             }
 
             case "cancel" -> {
                 payment.setStatus(PaymentStatus.FAILED);
-                orderService.rollbackStock(order);
+                order.setOrderStatus(OrderStatus.CANCELLED);
+                paymentService.rollbackStockOnce(payment);
             }
         }
 

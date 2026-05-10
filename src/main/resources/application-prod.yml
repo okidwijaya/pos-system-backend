@@ -1,4 +1,7 @@
 spring:
+  flyway:
+    baseline-on-migrate: false
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -24,7 +27,48 @@ spring:
       port: ${REDIS_PORT}
       timeout: 60000
 
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
   endpoint:
     health:
       show-details: never
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: WARN
+    com.kitadevelopers.pos: INFO
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS}
+  frontend:
+    reset-password-url: ${FRONTEND_RESET_PASSWORD_URL}
+
+jwt:
+  secret: ${JWT_SECRET}
+
+midtrans:
+  snap-url: ${MIDTRANS_SNAP_URL:https://app.midtrans.com/snap/v1/transactions}
+  server-key: ${MIDTRANS_SERVER_KEY}

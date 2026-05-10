@@ -22,6 +22,7 @@ import java.util.UUID;
 public class ProductController {
     private final ProductService service;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ApiResponse<ProductResponse> create(@Valid @RequestBody CreateProductRequest request){
         return ApiResponse.success(service.create(request));

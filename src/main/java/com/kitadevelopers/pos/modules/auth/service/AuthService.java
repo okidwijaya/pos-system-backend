@@ -1,5 +1,7 @@
 package com.kitadevelopers.pos.modules.auth.service;
 
+import com.kitadevelopers.pos.common.exception.BusinessException;
+import com.kitadevelopers.pos.common.exception.ErrorCode;
 import com.kitadevelopers.pos.common.service.EmailService;
 import com.kitadevelopers.pos.modules.auth.dto.AuthResponse;
 import com.kitadevelopers.pos.modules.auth.dto.LoginRequest;
@@ -14,6 +16,7 @@ import com.kitadevelopers.pos.modules.user.repository.UserRepository;
 import com.kitadevelopers.pos.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +35,14 @@ public class AuthService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
 
+    @Value("${app.frontend.reset-password-url:http://localhost:3000/reset-password}")
+    private String resetPasswordUrl;
+
     public AuthResponse register(RegisterRequest request){
+        if(userRepository.findByEmail(request.email()).isPresent()){
+            throw BusinessException.conflict(ErrorCode.DUPLICATE_RESOURCE, "Email is already registered");
+        }
+
         User user = User.builder()
                 .name(request.name())
                 .email(request.email())
@@ -45,20 +55,38 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
+        saveRefreshToken(user, refreshToken);
+
         return new AuthResponse(accessToken, refreshToken);
     }
 
     public AuthResponse login(LoginRequest request){
 
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("User Not Found"));
+                .orElseThrow(() -> BusinessException.unauthorized(
+                        ErrorCode.INVALID_CREDENTIALS,
+                        "Invalid email or password"
+                ));
 
         if(!passwordEncoder.matches(request.password(), user.getPassword())){
-            throw new RuntimeException("Invalid Password");
+            throw BusinessException.unauthorized(
+                    ErrorCode.INVALID_CREDENTIALS,
+                    "Invalid email or password"
+            );
+        }
+
+        if(Boolean.FALSE.equals(user.getIsActive()) || Boolean.TRUE.equals(user.getIsDeleted())){
+            throw BusinessException.unauthorized(
+                    ErrorCode.UNAUTHORIZED,
+                    "Account is inactive"
+            );
         }
 
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
 
         saveRefreshToken(user, refreshToken);
 
@@ -77,17 +105,33 @@ public class AuthService {
 
     public AuthResponse refresh(String token){
         RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid Rerfesh Token"));
+                .orElseThrow(() -> BusinessException.unauthorized(
+                        ErrorCode.INVALID_TOKEN,
+                        "Invalid refresh token"
+                ));
 
         if(refreshToken.getExpiryDate().isBefore(LocalDateTime.now())){
-            throw new  RuntimeException("Refresh Token expired");
+            refreshTokenRepository.delete(refreshToken);
+            throw BusinessException.unauthorized(
+                    ErrorCode.TOKEN_EXPIRED,
+                    "Refresh token expired"
+            );
         }
 
         User user = refreshToken.getUser();
 
-        String newAccessToken = jwtUtil.generateRefreshToken(user);
+        if(Boolean.FALSE.equals(user.getIsActive()) || Boolean.TRUE.equals(user.getIsDeleted())){
+            refreshTokenRepository.delete(refreshToken);
+            throw BusinessException.unauthorized(ErrorCode.UNAUTHORIZED, "Account is inactive");
+        }
 
-        return new AuthResponse(newAccessToken, token);
+        String newAccessToken = jwtUtil.generateAccessToken(user);
+        String newRefreshToken = jwtUtil.generateRefreshToken(user);
+
+        refreshTokenRepository.delete(refreshToken);
+        saveRefreshToken(user, newRefreshToken);
+
+        return new AuthResponse(newAccessToken, newRefreshToken);
     }
 
     public void logout(String refreshToken){
@@ -104,7 +148,7 @@ public class AuthService {
         if(user == null) return;
 
         String rawToken = UUID.randomUUID().toString();
-        String tokenHash = passwordEncoder.encode(rawToken);
+        String tokenHash = hashToken(rawToken);
 
         PasswordResetToken resetToken = PasswordResetToken.builder()
                 .user(user)
@@ -115,7 +159,7 @@ public class AuthService {
 
         passwordResetTokenRepository.save(resetToken);
 
-        String resetLink = "https://yourfrontend.com/reset-password?token=" + rawToken;
+        String resetLink = resetPasswordUrl + "?token=" + rawToken;
 
        emailService.send(user.getEmail(), resetLink);
     }

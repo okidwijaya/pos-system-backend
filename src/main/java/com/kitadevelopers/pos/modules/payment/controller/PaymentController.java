@@ -12,6 +12,7 @@ import com.kitadevelopers.pos.modules.payment.entity.Payment;
 import com.kitadevelopers.pos.modules.payment.enums.PaymentStatus;
 import com.kitadevelopers.pos.modules.payment.repository.PaymentRepository;
 import com.kitadevelopers.pos.modules.payment.service.PaymentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,6 +36,7 @@ public class PaymentController {
         return ApiResponse.success(service.createPayment(orderId));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/mock/{externalId}/pay")
     public ResponseEntity<String> mockPay(@PathVariable String externalId){
         Payment payment = paymentRepository.findByExternalId(externalId)
@@ -53,7 +55,7 @@ public class PaymentController {
 
     @PreAuthorize("hasAnyRole('CASHIER', 'ADMIN')")
     @PostMapping("/manual-payment")
-    public ApiResponse<PaymentResponse> manualPayment(@RequestBody ManualPaymentRequest request){
+    public ApiResponse<PaymentResponse> manualPayment(@Valid @RequestBody ManualPaymentRequest request){
         return ApiResponse.success(service.manualPayment(request));
     }
 
@@ -61,7 +63,7 @@ public class PaymentController {
     @PostMapping("/{paymentId}/verify")
     public ApiResponse<String> verify(
             @PathVariable("paymentId") UUID paymentId,
-            @RequestBody VerifyPaymentRequest request
+            @Valid @RequestBody VerifyPaymentRequest request
     ){
         service.verifyManualPayment(paymentId, request);
         return ApiResponse.success("Payment verified");
@@ -71,7 +73,7 @@ public class PaymentController {
     @PostMapping("/{paymentId}/reject")
     public ApiResponse<String> reject(
             @PathVariable("paymentId") UUID paymentId,
-            @RequestBody RejectPaymentRequest request
+            @Valid @RequestBody RejectPaymentRequest request
     ){
         service.rejectManualPayment(paymentId, request);
         return ApiResponse.success("Payment rejected");

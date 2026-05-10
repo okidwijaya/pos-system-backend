@@ -14,11 +14,14 @@ import com.kitadevelopers.pos.modules.user.entity.User;
 import com.kitadevelopers.pos.modules.user.repository.UserRepository;
 import com.kitadevelopers.pos.modules.customer.repository.CustomerRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
@@ -39,12 +42,14 @@ class OrderServiceTest {
 
     @InjectMocks private OrderService orderService;
 
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
     private void mockSecurityContext(String email) {
-        Authentication auth = mock(Authentication.class);
-        when(auth.getName()).thenReturn(email);
-        SecurityContext ctx = mock(SecurityContext.class);
-        when(ctx.getAuthentication()).thenReturn(auth);
-        SecurityContextHolder.setContext(ctx);
+        Authentication auth = new UsernamePasswordAuthenticationToken(email, null);
+        SecurityContextHolder.setContext(new SecurityContextImpl(auth));
     }
 
     @Test
@@ -103,6 +108,7 @@ class OrderServiceTest {
 
         Order existing = Order.builder()
                 .orderNumber("ORD-EXISTING")
+                .cashier(User.builder().name("Cashier").build())
                 .totalAmount(new BigDecimal("15000"))
                 .items(new ArrayList<>())
                 .build();

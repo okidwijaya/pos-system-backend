@@ -19,7 +19,7 @@ import java.util.List;
 public class PaymentScheduler {
 
     private final PaymentRepository paymentRepository;
-    private final OrderService orderService;
+    private final PaymentService paymentService;
 
     @Scheduled(fixedRate = 60000)
     @Transactional
@@ -31,11 +31,10 @@ public class PaymentScheduler {
 
         for(Payment p : payments){
                 p.setStatus(PaymentStatus.EXPIRED);
-                paymentRepository.save(p);
 
-                orderService.rollbackStock(p.getOrder());
-//                Order order = p.getOrder();
-//                order.setOrderStatus(OrderStatus.CANCELLED);
+                Order order = p.getOrder();
+                order.setOrderStatus(OrderStatus.CANCELLED);
+                paymentService.rollbackStockOnce(p);
         }
         paymentRepository.saveAll(payments);
     }

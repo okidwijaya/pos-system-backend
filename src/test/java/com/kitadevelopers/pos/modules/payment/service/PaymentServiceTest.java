@@ -7,6 +7,7 @@ import com.kitadevelopers.pos.modules.order.service.OrderService;
 //import com.kitadevelopers.pos.modules.payment.dto.ManualPaymentRequest;
 import com.kitadevelopers.pos.modules.payment.dto.RejectPaymentRequest;
 import com.kitadevelopers.pos.modules.payment.dto.VerifyPaymentRequest;
+import com.kitadevelopers.pos.modules.payment.config.MidtransProperties;
 import com.kitadevelopers.pos.modules.payment.entity.Payment;
 import com.kitadevelopers.pos.modules.payment.enums.PaymentStatus;
 import com.kitadevelopers.pos.modules.payment.repository.PaymentRepository;
@@ -29,6 +30,7 @@ class PaymentServiceTest {
     @Mock private PaymentRepository paymentRepository;
     @Mock private OrderRepository orderRepository;
     @Mock private OrderService orderService;
+    @Mock private MidtransProperties midtransProperties;
 
     @InjectMocks private PaymentService paymentService;
 
@@ -50,12 +52,16 @@ class PaymentServiceTest {
     void createPayment_success() {
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
-        when(paymentRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(paymentRepository.save(any())).thenAnswer(i -> {
+            Payment payment = i.getArgument(0);
+            payment.setId(UUID.randomUUID());
+            return payment;
+        });
 
         var result = paymentService.createPayment(orderId);
 
         assertThat(result).isNotNull();
-        assertThat(result.status()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(result.status()).isEqualTo(PaymentStatus.PENDING.name());
         assertThat(result.amount()).isEqualByComparingTo("50000");
     }
 
